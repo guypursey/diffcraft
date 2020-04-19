@@ -13,6 +13,9 @@
   "files": [
     "cli.js"
   ],
+  "bin": {
+    "diff-craft": "./cli.js"
+  },
   "keywords": [
     "diff",
     "patch",
