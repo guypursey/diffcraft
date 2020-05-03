@@ -37,7 +37,7 @@ Promise.all([
         ? fsp.readFile(argv.f[r + 1], "utf8")
         : argv[`f${r + 2}`]
           ? fsp.readFile(argv[`f${r + 2}`], "utf8")
-          : `${argv._[r + 1]}${argv._[r + 1].endsWith("\n") ? "" : "\n"}`
+          : `${argv._[r]}${argv._[r].endsWith("\n") ? "" : "\n"}`
     ])
   .then(function ([source, edited]) {
     return diffCraft.producePatchStringFromFilesContent([
