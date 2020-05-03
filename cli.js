@@ -22,8 +22,10 @@ const argv = require("yargs")
   .alias("v", "version")
   .epilog("copyright 2020")
   .argv;
-const prompt = require("prompt-sync")()
+const prompt = require("prompt-sync")({"sigint": true})
 const diffCraft = require("./index.js");
+
+const promptFn = async (message) => prompt(message)
 
 let r = (argv.r || 0) % 2
 
@@ -49,8 +51,7 @@ Promise.all([
         "filename": argv.f ? argv.f[r] : argv.f2,
         "contents": edited
       }
-    ]
-    , prompt, console.log)
+    ], promptFn, console.log)
   })
   .then(function (data) {
     console.log("Result")

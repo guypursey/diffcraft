@@ -231,105 +231,130 @@ const getUserInput = function (displayInfo) {
   return prompt(displayInfo)
 }
 
-const displayDiff = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, hunkWrap, createPatch) {
+const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn) {
   const [ openingSource, closingSource, openingEdited, closingEdited ] = diffWrappers
   const [ formatSource, formatEdited ] = diffFormat
-  let stopAsking = false
-  let autoAnswer = false
-  let stagedLine = 1
-  let diffNumber = 0
-  let chunks = hunks.map(function (hunk, hunkNum) {
-    if (!stopAsking) {
-      displayFn(`Hunk ${hunkNum + 1}/${hunks.length}`)
-      displayFn(hunk.hunkDisplay
-        .replace(/(\[\-[\s\S]*?\-\])/g, `${formatSource("$1")}`)
-        .replace(/(\{\+[\s\S]*?\+\})/g, `${formatEdited("$1")}`)
-      )
-    }
-    if (hunkNum) {
-      stagedLine += hunk.sourceStart - (
-          hunks[hunkNum - 1].sourceStart +
-          hunks[hunkNum - 1].sourceLength
-        )
-    }
-    // overly stateful
-    hunk.hunkFrontContext.forEach(x => {
-      stagedLine += 1
-      x.stagedLine = stagedLine
-    })
-    hunk.hunkBody
-      .map(function (crumb, i) {
-        let decision = (!crumb.diff || autoAnswer) ? "y" : "n"
-        if (crumb.diff && !stopAsking) {
-          diffNumber = diffNumber + 1
-          displayFn(`Word diff ${diffNumber}`)
-          displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
-            crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
-          decision = deciderFn("Stage diff? (y/n/a/q) ")
-          stopAsking = (decision === "a" || decision === "q")
-          autoAnswer = (decision === "a")
-        }
-        let stage = (decision === "y" || decision === "a")
+  const crumb = crumbs[0]
+  diffNumber = diffNumber + (crumb.diff ? 1 : 0)
+  if (crumb.diff && !stopAsking) {
+    displayFn(`Word diff ${diffNumber}`)
+    displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
+      crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
+    decision = deciderFn("Stage diff? (y/n/a/q) ")
+  } else {
+    decision = (async () => autoAdding ? "y" : "n")()
+  }
+  return decision.then(function (result) {
+        let stage = (result === "y" || result === "a")
         if (crumb[stage ? "edited" : "source"].match(/^\n/)) stagedLine += 1
-        // overly reliant on stateful changes...
         crumb.stage = stage
         crumb.stagedLine = stagedLine
         if (crumb.diff && !stopAsking) {
           displayFn(crumb.stage ? "Staged" : "Not staged" )
         }
-        // is this even needed: should it just be forEach instead of map?
-        return crumb
+        stopAsking = stopAsking || (result === "a" || result === "q")
+        autoAdding = autoAdding || (result === "a")
+        let remainingCrumbs = crumbs.slice(1)
+        let completedCrumbs = remainingCrumbs.length
+          ? processCrumbs(remainingCrumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+          : {
+            "crumbs": [],
+            "stopAsking": stopAsking,
+            "autoAdding": autoAdding,
+            "diffNumber": diffNumber,
+            "stagedLine": stagedLine
+          }
+        return Promise.all([crumb, completedCrumbs])
+          .then(([crumb, completedCrumbs]) => ({
+            "crumbs": [].concat(crumb, completedCrumbs.crumbs),
+            "stopAsking": stopAsking || completedCrumbs.stopAsking,
+            "autoAdding": autoAdding || completedCrumbs.autoAdding,
+            "diffNumber": completedCrumbs.diffNumber,
+            "stagedLine": completedCrumbs.stagedLine
+          }))
       })
-    // overly stateful
-    hunk.hunkTrailContext.forEach(x => {
-      stagedLine += 1
-      x.stagedLine = stagedLine
-    })
-    let packagedHunk = packageHunk(
-      hunk.hunkFrontContext,
-      hunk.hunkBody,
-      hunk.hunkTrailContext
+  }
+
+
+const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart - 1, stopAsking, autoAdding) {
+  const [ formatSource, formatEdited ] = diffFormat
+  const hunk = hunks[0]
+  if (!stopAsking) {
+    displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
+    displayFn(hunk.hunkDisplay
+      .replace(/(\[\-[\s\S]*?\-\])/g, `${formatSource("$1")}`)
+      .replace(/(\{\+[\s\S]*?\+\})/g, `${formatEdited("$1")}`)
     )
-    return createPatch(packagedHunk)
+  }
+  hunk.hunkFrontContext.forEach(x => {
+    stagedLine += 1
+    x.stagedLine = stagedLine
   })
-  return chunks
+  return processCrumbs(hunk.hunkBody, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+    .then(function (result) {
+      ({ crumbs, stopAsking, autoAdding, diffNumber, stagedLine } = result);
+      hunk.hunkTrailContext.forEach(x => {
+        stagedLine += 1
+        x.stagedLine = stagedLine
+      })
+      let newHunk = createPatch(packageHunk(hunk.hunkFrontContext, crumbs, hunk.hunkTrailContext))
+      let remainingHunks = hunks.slice(1)
+      stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
+      let completedHunks = remainingHunks.length
+        ? processHunks(remainingHunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        : {
+          "hunks": [],
+          "stopAsking": stopAsking,
+          "autoAdding": autoAdding,
+          "stagedLine": stagedLine,
+          "diffNumber": diffNumber
+        }
+      return Promise.all([newHunk, completedHunks])
+        .then(([newHunk, completedHunks]) => ({
+          "hunks": [].concat(newHunk, completedHunks.hunks),
+          "stopAsking": stopAsking || completedHunks.stopAsking,
+          "autoAdding": autoAdding || completedHunks.autoAdding,
+          "diffNumber": completedHunks.diffNumber,
+          "stagedLine": completedHunks.stagedLine
+        }))
+    })
 }
 
 const producePatchString = (a, b, diffs, input, output) =>
-  createCombinedPatchString(a, b,
-    displayDiff(
-      contextualiseHunks(
-        nestGlutesIntoHunks(
-          agglutinatePairs(
-            pairUpDiffs(
-              breakUpLines(
-                diffs
+    processHunks(
+        contextualiseHunks(
+          nestGlutesIntoHunks(
+            agglutinatePairs(
+              pairUpDiffs(
+                breakUpLines(
+                  diffs
+                )
               )
             )
-          )
-        ), 1, packageHunk
-      ).map(x => createPatchStringsFromPairedHunk(
-        recreateWordDiffFromPairedHunk(x)
-      )), [
-        "[-", "-]", "{+", "+}"
-      ], [
-        chalk.red, chalk.green
-      ],
-      output,
-      input,
-      packageHunk,
-      createPatchStringsFromPairedHunk)
-  )
+          ), 1, packageHunk
+        ).map(x => createPatchStringsFromPairedHunk(
+          recreateWordDiffFromPairedHunk(x)
+        )), [
+          "[-", "-]", "{+", "+}"
+        ], [
+          chalk.red, chalk.green
+        ],
+        output,
+        input,
+        processCrumbs,
+        packageHunk,
+        createPatchStringsFromPairedHunk)
+      .then(result => createCombinedPatchString(a, b, result.hunks))
   
 const producePatchStringFromFilesContent = ([a, b], input, output) =>
   producePatchString(a.filename, b.filename, worddiff(a.contents, b.contents), input, output)
-  
 
 const producePatchFromFileObjs = (files) =>
   files.map(x => producePatchString(x.filename, x.diffs))
     .join("\n")
 
 module.exports = {
+  generateDiffs: worddiff,
   breakUpLines: breakUpLines,
   pairUpDiffs: pairUpDiffs,
   agglutinatePairs: agglutinatePairs,
@@ -340,7 +365,8 @@ module.exports = {
   createPatchStringsFromPairedHunk: createPatchStringsFromPairedHunk,
   createWordDiffString: createCombinedPatchString,
   getUserInput: getUserInput,
-  displayDiff: displayDiff,
+  processCrumbs: processCrumbs,
+  processHunks: processHunks,
   producePatchString: producePatchString,
   producePatchStringFromFilesContent: producePatchStringFromFilesContent,
   producePatchFromFileObjs: producePatchFromFileObjs
