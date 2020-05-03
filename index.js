@@ -276,7 +276,7 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
   }
 
 
-const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart - 1, stopAsking, autoAdding) {
+const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
   const [ formatSource, formatEdited ] = diffFormat
   const hunk = hunks[0]
   if (!stopAsking) {
@@ -286,8 +286,8 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
       .replace(/(\{\+[\s\S]*?\+\})/g, `${formatEdited("$1")}`)
     )
   }
-  hunk.hunkFrontContext.forEach(x => {
-    stagedLine += 1
+  hunk.hunkFrontContext.forEach((x, i) => {
+    stagedLine += (!hunkNum && !i) ? 0 : 1
     x.stagedLine = stagedLine
   })
   return processCrumbs(hunk.hunkBody, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
