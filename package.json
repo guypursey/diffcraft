@@ -1,5 +1,5 @@
 {
-  "name": "diff-craft",
+  "name": "diffcraft",
   "version": "0.0.0",
   "description": "A package for crafting with diffs and creating patches and the like",
   "main": "index.js",
@@ -8,13 +8,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guypursey/diff-craft.git"
+    "url": "git+https://github.com/guypursey/diffcraft.git"
   },
   "files": [
     "cli.js"
   ],
   "bin": {
-    "diff-craft": "./cli.js"
+    "diffcraft": "./cli.js"
   },
   "keywords": [
     "diff",
@@ -26,9 +26,9 @@
   "author": "Guy Pursey <guypursey@gmail.com> (guypursey.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/guypursey/diff-craft/issues"
+    "url": "https://github.com/guypursey/diffcraft/issues"
   },
-  "homepage": "https://github.com/guypursey/diff-craft#readme",
+  "homepage": "https://github.com/guypursey/diffcraft#readme",
   "dependencies": {
     "chalk": "^4.0.0",
     "diff": "^4.0.2",
