@@ -22,10 +22,19 @@ const argv = require("yargs")
   .alias("v", "version")
   .epilog("copyright 2020")
   .argv;
-const prompt = require("prompt-sync")({"sigint": true})
+const prompts = require("prompts");
+const ttys = require("ttys");
 const diffCraft = require("./index.js");
 
-const promptFn = async (message) => prompt(message)
+const promptFn = (async (message) => {
+  const response = await prompts({
+    type: "text",
+    name: "checkprompt",
+    message: message,
+    stdin: ttys.stdin
+  })
+  return response.checkprompt
+})
 
 let r = (argv.r || 0) % 2
 
@@ -56,6 +65,7 @@ Promise.all([
   .then(function (data) {
     console.log("Result")
     console.log(data)
+    ttys.stdin.destroy()
   })
   .catch(function (error) {
     console.log(error)
