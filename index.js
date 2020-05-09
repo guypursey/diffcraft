@@ -111,7 +111,7 @@ const agglutinatePairs = (diffArray, agglutinator = /^ +$/) => {
 const nestGlutesIntoHunks = flatArray => flatArray.reduce((p, c, i, a) => {
     let lastDiff = i ? a[i - 1] : null
     let overLap = lastDiff
-      ? lastDiff.sourceLine=== c.sourceLine
+      ? lastDiff.sourceLine === c.sourceLine
         || lastDiff.editedLine === c.editedLine
       : false
     let currentNest = overLap
@@ -225,10 +225,6 @@ const createCombinedPatchString = (a, b, hunks) => {
     }\n+++ b/${
       b
     }\n`)
-}
-
-const getUserInput = function (displayInfo) {
-  return prompt(displayInfo)
 }
 
 const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn) {
@@ -363,8 +359,8 @@ module.exports = {
   contextualiseHunks: contextualiseHunks,
   recreateWordDiffFromPairedHunk: recreateWordDiffFromPairedHunk,
   createPatchStringsFromPairedHunk: createPatchStringsFromPairedHunk,
-  createWordDiffString: createCombinedPatchString,
-  getUserInput: getUserInput,
+  createWordDiffString: createWordDiffString,
+  createCombinedPatchString: createCombinedPatchString,
   processCrumbs: processCrumbs,
   processHunks: processHunks,
   producePatchString: producePatchString,
