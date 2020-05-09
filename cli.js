@@ -24,7 +24,7 @@ const argv = require("yargs")
   .argv;
 const prompts = require("prompts");
 const ttys = require("ttys");
-const diffCraft = require("./index.js");
+const diffcraft = require("./index.js");
 
 const promptFn = (async (message) => {
   const response = await prompts({
@@ -51,7 +51,7 @@ Promise.all([
           : `${argv._[r]}${argv._[r].endsWith("\n") ? "" : "\n"}`
     ])
   .then(function ([source, edited]) {
-    return diffCraft.producePatchStringFromFilesContent([
+    return diffcraft.producePatchStringFromFilesContent([
       {
         "filename": argv.f ? argv.f[r] : argv.f1,
         "contents": source
@@ -60,7 +60,7 @@ Promise.all([
         "filename": argv.f ? argv.f[r] : argv.f2,
         "contents": edited
       }
-    ], promptFn, console.log)
+    ], promptFn, console.log, x => x)
   })
   .then(function (data) {
     console.log("Result")
