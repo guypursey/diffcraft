@@ -4,6 +4,14 @@ A package for crafting with diffs and creating patches and the like. For now, po
 
 At present, this remains a proof-of-concept.
 
+## What is this?
+
+ - Ever wish `git add -p` was more granular? (But not wanted to futz with editing patches yourself?)
+ - Ever wish there was something like Microsoft Word's "tracked changes" accept and reject ability for the command line?
+ - Ever wish you could interact with `git diff --word-diff` to make your own patch?
+
+This is that.
+
 ## Use as package in Node script
 
 Install locally:
