@@ -316,7 +316,7 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
     })
 }
 
-const producePatchString = (a, b, diffs, input, output) =>
+const producePatchData = (diffs, userInput, userDisplay) =>
     processHunks(
         contextualiseHunks(
           nestGlutesIntoHunks(
@@ -335,15 +335,16 @@ const producePatchString = (a, b, diffs, input, output) =>
         ], [
           chalk.red, chalk.green
         ],
-        output,
-        input,
+        userDisplay,
+        userInput,
         processCrumbs,
         packageHunk,
         createPatchStringsFromPairedHunk)
-      .then(result => createCombinedPatchString(a, b, result.hunks))
   
-const producePatchStringFromFilesContent = ([a, b], input, output) =>
-  producePatchString(a.filename, b.filename, worddiff(a.contents, b.contents), input, output)
+const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputter) =>
+  producePatchData(worddiff(a.contents, b.contents), decider, displayer)
+    .then(result => createCombinedPatchString(a.filename, b.filename, result.hunks))
+    .then(result => outputter(result))
 
 const producePatchFromFileObjs = (files) =>
   files.map(x => producePatchString(x.filename, x.diffs))
@@ -363,7 +364,7 @@ module.exports = {
   createCombinedPatchString: createCombinedPatchString,
   processCrumbs: processCrumbs,
   processHunks: processHunks,
-  producePatchString: producePatchString,
+  producePatchData: producePatchData,
   producePatchStringFromFilesContent: producePatchStringFromFilesContent,
   producePatchFromFileObjs: producePatchFromFileObjs
 }
