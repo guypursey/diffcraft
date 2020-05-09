@@ -242,7 +242,7 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
       crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
     decision = deciderFn("Stage diff? (y/n/a/q) ")
   } else {
-    decision = (async () => autoAdding ? "y" : "n")()
+    decision = (async () => (!crumb.diff || autoAdding) ? "y" : "n")()
   }
   return decision.then(function (result) {
         let stage = (result === "y" || result === "a")
