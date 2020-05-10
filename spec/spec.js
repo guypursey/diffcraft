@@ -184,8 +184,28 @@ describe("Checking patch data produced", function () {
       
     })
 
-    describe("and an alternating input", function () {
-      let result = producePatchData(diffs, stubUserInput("nynynyn"), silentDisplay)
+    describe("with input alternating between negative and positive", function () {
+
+      let result
+
+      before(async function () {
+        result = await producePatchData(diffs, stubUserInput("nynynyn"), silentDisplay)
+      })
+
+      it("should return all evenly-number diffs as staged", function() {
+        result.hunks[0].hunkBody
+          .filter(x => x.diff)
+          .filter((x, i) => i % 2)
+          .should.all.have.property("stage", true)
+      })
+
+      it("should return every other diff as unstaged", function() {
+        result.hunks[0].hunkBody
+          .filter(x => x.diff)
+          .filter((x, i) => (i + 1) % 2)
+          .should.all.have.property("stage", false)
+      })
+
     })
     
   })
