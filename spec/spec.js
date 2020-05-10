@@ -115,6 +115,7 @@ describe("Splitting diffs at line breaks and adding line numbering", function ()
 })
 
 describe("Checking patch data produced", function () {
+  let producePatchData = diffcraft.producePatchData
   let stubUserInput = ((input = "") => {
     let memoInput = input.split("")
     return (async (message) => memoInput.shift() || "q")
@@ -126,7 +127,6 @@ describe("Checking patch data produced", function () {
     let a = "He worked sixteen hours daily for ten or twelve days at a stretch and then for two hole days was not be be found by anyone. He spent that time in his mother's flat, sleeping and eating steaks and ice-cream, taking the old lady to the movies or spading at his master's thesis which was on the philosophy of non-violence. Once in a while he slipped away to a lecture. He was studying law. too. Grammick wasn't going to be sucked away from all private existence, though at his job that ten day stretch he didn't appear to have any ulterior design of heading for any shore of his own.";
     let b = "He would work sixteen hours daily for ten or twelve days at a stretch and then for two whole days he couldn't be found by anyone. He spent that time in his mother's flat, sleeping and eating steaks and ice-cream, taking the old lady to the movies or reading. Once in a while he slipped away to a lecture. He was studying law, too. Grammick wasn't going to be sucked away from all private existence.";
     let diffs = diff.diffWordsWithSpace(a, b)
-    let producePatchData = diffcraft.producePatchData
 
     describe("with all negative inputs", function () {
       
@@ -210,8 +210,42 @@ describe("Checking patch data produced", function () {
     
   })
   
-  describe("with A and B versions of multi-lined content", function () {
+  describe("for A and B versions of multi-lined content", function () {
+
+    let a = ` - Forgo chartjunk, including moire vibration, the grid, and the duck.\n\nChartjunk is just the first type of non-data-ink, creators of data graphics should look for and remove to improve their data-ink ratio.`
+    let b = ` > Forgo [_sic_] chartjunk, including  \n > moiré vibration,  \n > the grid, and the duck.  \n\nYou can read more about the terms "moiré vibration", "the grid", and "the duck" on [Tufte's webpage about chartjunk](https://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=00040Z).\n\nChartjunk is just the first type of non-data-ink, creators of data graphics should look for and remove to improve their data-ink ratio.`
+    let diffs = diff.diffWordsWithSpace(a, b)
     
+    describe("with input ignoring diffs containing line breaks", function () {
+
+      let result
+
+      before(async function () {
+        result = await producePatchData(diffs, stubUserInput("ynynynynn"), silentDisplay)
+      })
+
+      it("should return staged lines the same as the original source lines", function () {
+        result.hunks[0].hunkBody.forEach(x => {
+          x.stagedLine.should.equal(x.sourceLine)
+        })
+      })
+    })
+    
+    describe("with input all positive", function () {
+
+      let result
+
+      before(async function () {
+        result = await producePatchData(diffs, stubUserInput("a"), silentDisplay)
+      })
+
+      it("should return staged lines the same as the edited lines", function () {
+        result.hunks[0].hunkBody.forEach(x => {
+          x.stagedLine.should.equal(x.editedLine)
+        })
+      })
+    })
+
   })
   
 })
