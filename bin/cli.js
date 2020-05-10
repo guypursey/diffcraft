@@ -14,6 +14,8 @@ const argv = require("yargs")
   .nargs("f2", 1)
   .conflicts("f2", "f")
   .describe("f2", "Use contents of specified file for second input to diff")
+  .alias("o", "output").nargs("o", 1)
+  .describe("o", "Load the patch contents into the specified file")
   .alias("r", "reverse").nargs("r", 0)
   .count("r")
   .describe("r", "Reverse first and second input")
@@ -35,6 +37,20 @@ const promptFn = (async (message) => {
   })
   return response.checkprompt
 })
+
+const loggerFn = console.log;
+
+const outputFn = argv.o
+  ? (async (output) => {
+      fsp.writeFile(argv.o, output, "utf8", function (e) {
+        console.error(e || `Wrote patch successfully to ${argv.o}`)
+      })
+      return output
+    })
+  : output => {
+    loggerFn(output)
+    return output
+  };
 
 let r = (argv.r || 0) % 2
 
@@ -60,7 +76,7 @@ Promise.all([
         "filename": argv.f ? argv.f[r] : argv.f2,
         "contents": edited
       }
-    ], promptFn, console.log, x => x)
+    ], promptFn, loggerFn, outputFn)
   })
   .then(function (data) {
     console.log("Result")
