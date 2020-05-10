@@ -24,7 +24,7 @@ const argv = require("yargs")
   .argv;
 const prompts = require("prompts");
 const ttys = require("ttys");
-const diffcraft = require("./index.js");
+const diffcraft = require("../src/index.js");
 
 const promptFn = (async (message) => {
   const response = await prompts({
