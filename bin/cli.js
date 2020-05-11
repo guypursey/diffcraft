@@ -16,9 +16,6 @@ const argv = require("yargs")
   .describe("f2", "Use contents of specified file for second input to diff")
   .alias("o", "output").nargs("o", 1)
   .describe("o", "Load the patch contents into the specified file")
-  .alias("r", "reverse").nargs("r", 0)
-  .count("r")
-  .describe("r", "Reverse first and second input")
   .help("h")
   .alias("h", "help")
   .alias("v", "version")
@@ -52,29 +49,27 @@ const outputFn = argv.o
     return output
   };
 
-let r = (argv.r || 0) % 2
-
 Promise.all([
       argv.f
-        ? fsp.readFile(argv.f[r], "utf8")
-        : argv[`f${r + 1}`]
-          ? fsp.readFile(argv[`f${r + 1}`], "utf8")
-          : `${argv._[r]}${argv._[r].endsWith("\n") ? "" : "\n"}`,
+        ? fsp.readFile(argv.f[0], "utf8")
+        : argv.f1
+          ? fsp.readFile(argv.f1, "utf8")
+          : `${argv._[0]}${argv._[0].endsWith("\n") ? "" : "\n"}`,
       argv.f
-        ? fsp.readFile(argv.f[r + 1], "utf8")
-        : argv[`f${r + 2}`]
-          ? fsp.readFile(argv[`f${r + 2}`], "utf8")
-          : `${argv._[r]}${argv._[r].endsWith("\n") ? "" : "\n"}`
+        ? fsp.readFile(argv.f[1], "utf8")
+        : argv.f2
+          ? fsp.readFile(argv.f2, "utf8")
+          : `${argv._[0]}${argv._[0].endsWith("\n") ? "" : "\n"}`
     ])
   .then(function ([source, edited]) {
     return diffcraft.producePatchStringFromFilesContent([
       {
-        "filename": argv.f ? argv.f[r] : argv.f1,
-        "contents": source
+        "filename": argv.f ? argv.f[0] : argv.f1 || argv.f2,
+        "contents": source.replace(/\r/g, "")
       },
       {
-        "filename": argv.f ? argv.f[r] : argv.f2,
-        "contents": edited
+        "filename": argv.f ? argv.f[0] : argv.f2 || argv.f1,
+        "contents": edited.replace(/\r/g, "")
       }
     ], promptFn, loggerFn, outputFn)
   })
