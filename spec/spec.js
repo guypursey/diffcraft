@@ -1,6 +1,6 @@
 const chai = require("chai").use(require("chai-things")).should();
 const diff = require("diff");
-const diffcraft = require("../index.js");
+const diffcraft = require("../src/index.js");
 
 describe("Splitting diffs at line breaks and adding line numbering", function () {
   let breakUpLines = diffcraft.breakUpLines
