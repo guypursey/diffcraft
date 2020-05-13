@@ -247,5 +247,58 @@ describe("Checking patch data produced", function () {
     })
 
   })
-  
+
+  describe("for A and B versions of multi-hunk content", function () {
+
+    let a = `# Example contents\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that changes.`
+    let b = `# Test contents\n\nA new first line added.\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that has changed.`
+    let diffs = diff.diffWordsWithSpace(a, b)
+
+    describe("with input ignoring first hunk, which contains line break changes", function () {
+
+      let result
+
+      before(async function () {
+        result = await producePatchData(diffs, stubUserInput("nnnny"), silentDisplay)
+      })
+
+      it("should return, in the first hunk, staged lines the same as the source lines", function () {
+        result.hunks[0].hunkBody.forEach(x => {
+          x.stagedLine.should.equal(x.sourceLine)
+        })
+      })
+
+      it("should return, in the second hunk, staged lines the same as the source lines", function () {
+        result.hunks[1].hunkBody.forEach(x => {
+          x.stagedLine.should.equal(x.sourceLine)
+        })
+      })
+
+    })
+
+    describe("with input accepting all changes even the line break changes", function () {
+      let result
+
+      before(async function () {
+        result = await producePatchData(diffs, stubUserInput("a"), silentDisplay)
+      })
+
+      it("should return the first diff with the same line numbers for staged, source, and edited, e.g., 1", function () {
+        result.hunks[0].hunkBody[0].stagedLine
+          .should.equal(result.hunks[0].hunkBody[0].sourceLine)
+          .and.equal(result.hunks[0].hunkBody[0].editedLine)
+          .and.equal(1)
+      })
+
+      it("should return, in the second hunk, staged lines the same as the edited lines", function () {
+        result.hunks[1].hunkFrontContext[0].stagedLine
+          .should.equal(result.hunks[1].hunkFrontContext[0].editedLine)
+          .and.equal(b.match(/\n/g).length)
+      })
+
+
+    })
+
+  })
+
 })
