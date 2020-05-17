@@ -316,14 +316,14 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
     })
 }
 
-const producePatchData = (diffs, userInput, userDisplay) =>
+const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
     processHunks(
         contextualiseHunks(
           nestGlutesIntoHunks(
             agglutinatePairs(
               pairUpDiffs(
                 breakUpLines(
-                  diffs
+                  worddiff(a, b)
                 )
               )
             )
@@ -342,7 +342,7 @@ const producePatchData = (diffs, userInput, userDisplay) =>
         createPatchStringsFromPairedHunk)
   
 const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputter) =>
-  producePatchData(worddiff(a.contents, b.contents), decider, displayer)
+  producePatchDataFromTwoInputs(a.contents, b.contents, decider, displayer)
     .then(result => createCombinedPatchString(a.filename, b.filename, result.hunks))
     .then(result => outputter(result))
 
@@ -364,7 +364,7 @@ module.exports = {
   createCombinedPatchString: createCombinedPatchString,
   processCrumbs: processCrumbs,
   processHunks: processHunks,
-  producePatchData: producePatchData,
+  producePatchDataFromTwoInputs: producePatchDataFromTwoInputs,
   producePatchStringFromFilesContent: producePatchStringFromFilesContent,
   producePatchFromFileObjs: producePatchFromFileObjs
 }

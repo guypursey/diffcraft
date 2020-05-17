@@ -115,7 +115,7 @@ describe("Splitting diffs at line breaks and adding line numbering", function ()
 })
 
 describe("Checking patch data produced", function () {
-  let producePatchData = diffcraft.producePatchData
+  let producePatchDataFromTwoInputs = diffcraft.producePatchDataFromTwoInputs
   let stubUserInput = ((input = "") => {
     let memoInput = input.split("")
     return (async (message) => memoInput.shift() || "q")
@@ -126,14 +126,13 @@ describe("Checking patch data produced", function () {
 
     let a = "He worked sixteen hours daily for ten or twelve days at a stretch and then for two hole days was not be be found by anyone. He spent that time in his mother's flat, sleeping and eating steaks and ice-cream, taking the old lady to the movies or spading at his master's thesis which was on the philosophy of non-violence. Once in a while he slipped away to a lecture. He was studying law. too. Grammick wasn't going to be sucked away from all private existence, though at his job that ten day stretch he didn't appear to have any ulterior design of heading for any shore of his own.";
     let b = "He would work sixteen hours daily for ten or twelve days at a stretch and then for two whole days he couldn't be found by anyone. He spent that time in his mother's flat, sleeping and eating steaks and ice-cream, taking the old lady to the movies or reading. Once in a while he slipped away to a lecture. He was studying law, too. Grammick wasn't going to be sucked away from all private existence.";
-    let diffs = diff.diffWordsWithSpace(a, b)
 
     describe("with all negative inputs", function () {
       
       let result
       
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("nnnnnnn"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nnnnnnn"), silentDisplay)
       })
       
       describe("using individual negative values", function () {
@@ -148,7 +147,7 @@ describe("Checking patch data produced", function () {
       describe("using quit value", function () {
         
         it("should return the same result as if individual negative values had been used", async function (){
-          let result2 = await producePatchData(diffs, stubUserInput("q"), silentDisplay)
+          let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("q"), silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
         })
         
@@ -161,7 +160,7 @@ describe("Checking patch data produced", function () {
       let result
       
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("yyyyyyy"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyyyyyy"), silentDisplay)
       })
 
       describe("using individual positive values", function () {
@@ -176,7 +175,7 @@ describe("Checking patch data produced", function () {
       describe("using single staging value", function () {
         
         it("should return the same result as if individual positive values had been used", async function () {
-          let result2 = await producePatchData(diffs, stubUserInput("a"), silentDisplay)
+          let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
         })
         
@@ -189,7 +188,7 @@ describe("Checking patch data produced", function () {
       let result
 
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("nynynyn"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
       })
 
       it("should return all evenly-number diffs as staged", function() {
@@ -214,14 +213,13 @@ describe("Checking patch data produced", function () {
 
     let a = ` - Forgo chartjunk, including moire vibration, the grid, and the duck.\n\nChartjunk is just the first type of non-data-ink, creators of data graphics should look for and remove to improve their data-ink ratio.`
     let b = ` > Forgo [_sic_] chartjunk, including  \n > moiré vibration,  \n > the grid, and the duck.  \n\nYou can read more about the terms "moiré vibration", "the grid", and "the duck" on [Tufte's webpage about chartjunk](https://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=00040Z).\n\nChartjunk is just the first type of non-data-ink, creators of data graphics should look for and remove to improve their data-ink ratio.`
-    let diffs = diff.diffWordsWithSpace(a, b)
     
     describe("with input ignoring diffs containing line breaks", function () {
 
       let result
 
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("ynynynynn"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("ynynynynn"), silentDisplay)
       })
 
       it("should return staged lines the same as the original source lines", function () {
@@ -236,7 +234,7 @@ describe("Checking patch data produced", function () {
       let result
 
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("a"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
       })
 
       it("should return staged lines the same as the edited lines", function () {
@@ -252,14 +250,13 @@ describe("Checking patch data produced", function () {
 
     let a = `# Example contents\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that changes.`
     let b = `# Test contents\n\nA new first line added.\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that has changed.`
-    let diffs = diff.diffWordsWithSpace(a, b)
 
     describe("with input ignoring first hunk, which contains line break changes", function () {
 
       let result
 
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("nnnny"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nnnny"), silentDisplay)
       })
 
       it("should return, in the first hunk, staged lines the same as the source lines", function () {
@@ -280,7 +277,7 @@ describe("Checking patch data produced", function () {
       let result
 
       before(async function () {
-        result = await producePatchData(diffs, stubUserInput("a"), silentDisplay)
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
       })
 
       it("should return the first diff with the same line numbers for staged, source, and edited, e.g., 1", function () {
