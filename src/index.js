@@ -351,20 +351,6 @@ const producePatchFromFileObjs = (files) =>
     .join("\n")
 
 module.exports = {
-  generateDiffs: worddiff,
-  breakUpLines: breakUpLines,
-  pairUpDiffs: pairUpDiffs,
-  agglutinatePairs: agglutinatePairs,
-  nestGlutesIntoHunks: nestGlutesIntoHunks,
-  packageHunk: packageHunk,
-  contextualiseHunks: contextualiseHunks,
-  recreateWordDiffFromPairedHunk: recreateWordDiffFromPairedHunk,
-  createPatchStringsFromPairedHunk: createPatchStringsFromPairedHunk,
-  createWordDiffString: createWordDiffString,
-  createCombinedPatchString: createCombinedPatchString,
-  processCrumbs: processCrumbs,
-  processHunks: processHunks,
   producePatchDataFromTwoInputs: producePatchDataFromTwoInputs,
-  producePatchStringFromFilesContent: producePatchStringFromFilesContent,
-  producePatchFromFileObjs: producePatchFromFileObjs
+  producePatchStringFromFilesContent: producePatchStringFromFilesContent
 }
