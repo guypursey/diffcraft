@@ -2,7 +2,7 @@
   "name": "diffcraft",
   "version": "0.1.1",
   "description": "A package for crafting with diffs and creating patches and the like",
-  "main": "./src/index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "mocha ./spec/*.js",
     "coverage": "nyc npm run test"
@@ -11,12 +11,9 @@
     "type": "git",
     "url": "git+https://github.com/guypursey/diffcraft.git"
   },
-  "files": [
-    "./bin/cli.js",
-    "./src/index.js"
-  ],
+  "files": [],
   "bin": {
-    "diffcraft": "./bin/cli.js"
+    "diffcraft": "bin/cli.js"
   },
   "keywords": [
     "diff",
