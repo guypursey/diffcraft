@@ -12,7 +12,8 @@
     "url": "git+https://github.com/guypursey/diffcraft.git"
   },
   "files": [
-    "./bin/cli.js"
+    "./bin/cli.js",
+    "./src/index.js"
   ],
   "bin": {
     "diffcraft": "./bin/cli.js"
