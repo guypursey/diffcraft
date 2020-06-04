@@ -46,11 +46,11 @@ _Or_, perhaps more usefully, pipe in contents from a Git command and compare wit
 
 You can then apply the resulting patch with git...
 
-    git apply --staged test.patch
+    git apply --cached test.patch
 
 The patch then should be ready to commit but can check it, of course, with:
 
-    git diff --staged
+    git diff --cached
 
 Because the algorithm works on a file-by-file basis, you might want to create and stage several patches before then committing with the usual `git commit`.
 
