@@ -21,7 +21,7 @@ describe("Checking patch data produced", function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nnnnnnn"), silentDisplay)
       })
       describe("using individual negative values", function () {
-        it("should return all diffs unstaged", function () {
+        it("should return all diffs marked as not for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", false)
         })
@@ -40,7 +40,7 @@ describe("Checking patch data produced", function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyyyyyy"), silentDisplay)
       })
       describe("using individual positive values", function () {
-        it("should return all diffs as staged", function () {
+        it("should return all diffs as marked for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", true)
         })
@@ -58,13 +58,13 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
       })
-      it("should return all evenly-number diffs as staged", function() {
+      it("should return all evenly-number diffs marked for staging", function() {
         result.hunks[0].hunkBody
           .filter(x => x.diff)
           .filter((x, i) => i % 2)
           .should.all.have.property("stage", true)
       })
-      it("should return every other diff as unstaged", function() {
+      it("should return every other diff marked for not staging", function() {
         result.hunks[0].hunkBody
           .filter(x => x.diff)
           .filter((x, i) => (i + 1) % 2)
@@ -83,7 +83,7 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("ynynynynn"), silentDisplay)
       })
-      it("should return staged lines the same as the original source lines", function () {
+      it("should return same lines marked for staging as the original source lines", function () {
         result.hunks[0].hunkBody.forEach(x => {
           x.stagedLine.should.equal(x.sourceLine)
         })
