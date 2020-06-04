@@ -39,10 +39,11 @@ const loggerFn = console.log;
 
 const outputFn = argv.o
   ? (async (output) => {
-      fsp.writeFile(argv.o, output, "utf8", function (e) {
-        console.error(e || `Wrote patch successfully to ${argv.o}`)
-      })
-      return output
+      fsp.writeFile(argv.o, output, "utf8")
+        .then(function (result) {
+          console.log(`Wrote patch successfully to ${argv.o}`)
+          return output
+        })
     })
   : output => {
     loggerFn(output)
@@ -74,8 +75,6 @@ Promise.all([
     ], promptFn, loggerFn, outputFn)
   })
   .then(function (data) {
-    console.log("Result")
-    console.log(data)
     ttys.stdin.destroy()
   })
   .catch(function (error) {
