@@ -273,9 +273,8 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   }
 
 
-const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
-  const [ openingSource, closingSource, openingEdited, closingEdited ] = diffWrappers
-  const [ formatSource, formatEdited ] = diffFormat
+const processHunks = function (hunks, diffFormatting, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
+  const { formatSource, formatEdited } = diffFormatting
   const hunk = hunks[0]
   if (!stopAsking) {
     displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
@@ -288,7 +287,6 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
     stagedLine += (!hunkNum && !i) ? 0 : 1
     x.stagedLine = stagedLine
   })
-  diffFormatting = { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited }
   return processCrumbs(hunk.hunkBody, diffFormatting, { displayFn, deciderFn }, { diffNumber, stagedLine, stopAsking, autoAdding })
     .then(function (result) {
       ({ crumbs, stopAsking, autoAdding, diffNumber, stagedLine } = result);
@@ -300,7 +298,7 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
       let remainingHunks = hunks.slice(1)
       stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
       let completedHunks = remainingHunks.length
-        ? processHunks(remainingHunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        ? processHunks(remainingHunks, diffFormatting, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
         : {
           "hunks": [],
           "stopAsking": stopAsking,
@@ -333,11 +331,14 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
           ), 1, packageHunk
         ).map(x => createPatchStringsFromPairedHunk(
           recreateWordDiffFromPairedHunk(x)
-        )), [
-          "[-", "-]", "{+", "+}"
-        ], [
-          chalk.red, chalk.green
-        ],
+        )), {
+          "openingSource": "[-",
+          "closingSource": "-]",
+          "openingEdited": "{+",
+          "closingEdited": "+}",
+          "formatSource": chalk.red,
+          "formatEdited": chalk.green
+        },
         userDisplay,
         userInput,
         processCrumbs,
