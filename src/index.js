@@ -227,9 +227,10 @@ const createCombinedPatchString = (a, b, hunks) => {
     }\n`)
 }
 
-const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn) {
-  const [ openingSource, closingSource, openingEdited, closingEdited ] = diffWrappers
-  const [ formatSource, formatEdited ] = diffFormat
+const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
+  const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
+  const { deciderFn, displayFn } = sideEffects
+  let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
   if (crumb.diff && !stopAsking) {
@@ -252,7 +253,7 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
         autoAdding = autoAdding || (result === "a")
         let remainingCrumbs = crumbs.slice(1)
         let completedCrumbs = remainingCrumbs.length
-          ? processCrumbs(remainingCrumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+          ? processCrumbs(remainingCrumbs, diffFormatting, sideEffects, { diffNumber, stagedLine, stopAsking, autoAdding })
           : {
             "crumbs": [],
             "stopAsking": stopAsking,
@@ -273,6 +274,7 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
 
 
 const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
+  const [ openingSource, closingSource, openingEdited, closingEdited ] = diffWrappers
   const [ formatSource, formatEdited ] = diffFormat
   const hunk = hunks[0]
   if (!stopAsking) {
@@ -286,7 +288,8 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
     stagedLine += (!hunkNum && !i) ? 0 : 1
     x.stagedLine = stagedLine
   })
-  return processCrumbs(hunk.hunkBody, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+  diffFormatting = { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited }
+  return processCrumbs(hunk.hunkBody, diffFormatting, { displayFn, deciderFn }, { diffNumber, stagedLine, stopAsking, autoAdding })
     .then(function (result) {
       ({ crumbs, stopAsking, autoAdding, diffNumber, stagedLine } = result);
       hunk.hunkTrailContext.forEach(x => {
