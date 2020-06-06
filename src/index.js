@@ -273,11 +273,19 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   }
 
 
-const processHunks = function (hunks, diffFormatting, sideEffects, helpers, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
+const processHunks = function (hunks, diffFormatting, sideEffects, helpers, carriedState = {}) {
+  const hunk = hunks[0]
   const { formatSource, formatEdited } = diffFormatting
   const { displayFn } = sideEffects
   const { processCrumbs, packageHunk, createPatch } = helpers
-  const hunk = hunks[0]
+  let {
+    hunkNum = 0,
+    hunkLength = hunks.length,
+    diffNumber = 0,
+    stagedLine = hunks[0].sourceStart,
+    stopAsking,
+    autoAdding
+  } = carriedState
   if (!stopAsking) {
     displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
     displayFn(hunk.hunkDisplay
@@ -299,8 +307,9 @@ const processHunks = function (hunks, diffFormatting, sideEffects, helpers, hunk
       let newHunk = createPatch(packageHunk(hunk.hunkFrontContext, crumbs, hunk.hunkTrailContext))
       let remainingHunks = hunks.slice(1)
       stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
+      let stateToCarry = { "hunkNum": hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding }
       let completedHunks = remainingHunks.length
-        ? processHunks(remainingHunks, diffFormatting, sideEffects, helpers, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        ? processHunks(remainingHunks, diffFormatting, sideEffects, helpers, stateToCarry)
         : {
           "hunks": [],
           "stopAsking": stopAsking,
