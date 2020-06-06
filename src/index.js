@@ -273,8 +273,9 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   }
 
 
-const processHunks = function (hunks, diffFormatting, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
+const processHunks = function (hunks, diffFormatting, sideEffects, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
   const { formatSource, formatEdited } = diffFormatting
+  const { displayFn } = sideEffects
   const hunk = hunks[0]
   if (!stopAsking) {
     displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
@@ -287,7 +288,7 @@ const processHunks = function (hunks, diffFormatting, displayFn, deciderFn, proc
     stagedLine += (!hunkNum && !i) ? 0 : 1
     x.stagedLine = stagedLine
   })
-  return processCrumbs(hunk.hunkBody, diffFormatting, { displayFn, deciderFn }, { diffNumber, stagedLine, stopAsking, autoAdding })
+  return processCrumbs(hunk.hunkBody, diffFormatting, sideEffects, { diffNumber, stagedLine, stopAsking, autoAdding })
     .then(function (result) {
       ({ crumbs, stopAsking, autoAdding, diffNumber, stagedLine } = result);
       hunk.hunkTrailContext.forEach(x => {
@@ -298,7 +299,7 @@ const processHunks = function (hunks, diffFormatting, displayFn, deciderFn, proc
       let remainingHunks = hunks.slice(1)
       stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
       let completedHunks = remainingHunks.length
-        ? processHunks(remainingHunks, diffFormatting, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        ? processHunks(remainingHunks, diffFormatting, sideEffects, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
         : {
           "hunks": [],
           "stopAsking": stopAsking,
@@ -339,8 +340,10 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
           "formatSource": chalk.red,
           "formatEdited": chalk.green
         },
-        userDisplay,
-        userInput,
+        {
+          "displayFn": userDisplay,
+          "deciderFn": userInput
+        },
         processCrumbs,
         packageHunk,
         createPatchStringsFromPairedHunk)
