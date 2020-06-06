@@ -273,9 +273,10 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   }
 
 
-const processHunks = function (hunks, diffFormatting, sideEffects, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
+const processHunks = function (hunks, diffFormatting, sideEffects, helpers, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
   const { formatSource, formatEdited } = diffFormatting
   const { displayFn } = sideEffects
+  const { processCrumbs, packageHunk, createPatch } = helpers
   const hunk = hunks[0]
   if (!stopAsking) {
     displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
@@ -299,7 +300,7 @@ const processHunks = function (hunks, diffFormatting, sideEffects, processCrumbs
       let remainingHunks = hunks.slice(1)
       stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
       let completedHunks = remainingHunks.length
-        ? processHunks(remainingHunks, diffFormatting, sideEffects, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        ? processHunks(remainingHunks, diffFormatting, sideEffects, helpers, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
         : {
           "hunks": [],
           "stopAsking": stopAsking,
@@ -344,9 +345,11 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
           "displayFn": userDisplay,
           "deciderFn": userInput
         },
-        processCrumbs,
-        packageHunk,
-        createPatchStringsFromPairedHunk)
+        {
+          "processCrumbs": processCrumbs,
+          "packageHunk": packageHunk,
+          "createPatch": createPatchStringsFromPairedHunk
+        })
   
 const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputter) =>
   producePatchDataFromTwoInputs(a.contents, b.contents, decider, displayer)
