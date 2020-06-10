@@ -229,14 +229,21 @@ const createCombinedPatchString = (a, b, hunks) => {
 
 const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
   const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
-  const { deciderFn, displayFn } = sideEffects
+  const { decidingInput, displayFn } = sideEffects
   let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
+  let decision
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
   if (crumb.diff && !stopAsking) {
     displayFn(`Word diff ${diffNumber}`)
     displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
       crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
+    const deciderFn = (typeof decidingInput === "function")
+      ? decidingInput
+      : (async () => decidingInput[0])
+    const nextDecider = (typeof decidingInput === "function")
+      ? decidingInput
+      : decidingInput.slice(1)
     decision = deciderFn("Stage diff? (y/n/a/q) ")
   } else {
     decision = (async () => (!crumb.diff || autoAdding) ? "y" : "n")()
@@ -352,7 +359,7 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
         },
         {
           "displayFn": userDisplay,
-          "deciderFn": userInput
+          "decidingInput": userInput
         },
         {
           "processCrumbs": processCrumbs,

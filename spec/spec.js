@@ -32,6 +32,18 @@ describe("Checking patch data produced", function () {
           result2.hunks.should.deep.equal(result.hunks)
         })
       })
+      describe("using negative values via predetermined input", function () {
+        it("should return the same result as if interactive negative values had been used", async function (){
+          let result2 = await producePatchDataFromTwoInputs(a, b, "nnnnnnn", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using quit value via predetermined input", function () {
+        it("should return the same result as if interactive negative values had been used", async function (){
+          let result2 = await producePatchDataFromTwoInputs(a, b, "q", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
     })
 
     describe("with all positive inputs", async function () {
@@ -48,6 +60,18 @@ describe("Checking patch data produced", function () {
       describe("using single staging value via interaction", function () {
         it("should return the same result as if individual positive values had been used", async function () {
           let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using positive values via predetermined input", function () {
+        it("should return the same result as if individual positive values had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "yyyyyyy", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using single staging value via predetermined input", function () {
+        it("should return the same result as if interactive positive values had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "a", silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
         })
       })
