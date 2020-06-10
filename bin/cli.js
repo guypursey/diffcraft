@@ -33,24 +33,15 @@ const prompts = require("prompts");
 const ttys = require("ttys");
 const diffcraft = require("../src/index.js");
 
-const promptFn = argv.i
-  ? (() => {
-      let character = 0
-      return (async (message) => {
-        let checkprompt = argv.i[character]
-        character += 1
-        return checkprompt
-      })
-    })()
-  : (async (message) => {
-      const response = await prompts({
-        type: "text",
-        name: "checkprompt",
-        message: message,
-        stdin: ttys.stdin
-      })
-      return response.checkprompt
+const promptFn = argv.i || (async (message) => {
+    const response = await prompts({
+      type: "text",
+      name: "checkprompt",
+      message: message,
+      stdin: ttys.stdin
     })
+    return response.checkprompt
+  })
 
 const loggerFn = console.log;
 
