@@ -20,13 +20,13 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nnnnnnn"), silentDisplay)
       })
-      describe("using individual negative values", function () {
+      describe("using individual negative values via interaction", function () {
         it("should return all diffs marked as not for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", false)
         })
       })
-      describe("using quit value", function () {
+      describe("using quit value via interaction", function () {
         it("should return the same result as if individual negative values had been used", async function (){
           let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("q"), silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
@@ -39,13 +39,13 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyyyyyy"), silentDisplay)
       })
-      describe("using individual positive values", function () {
+      describe("using individual positive values via interaction", function () {
         it("should return all diffs as marked for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", true)
         })
       })
-      describe("using single staging value", function () {
+      describe("using single staging value via interaction", function () {
         it("should return the same result as if individual positive values had been used", async function () {
           let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
@@ -53,7 +53,7 @@ describe("Checking patch data produced", function () {
       })
     })
 
-    describe("with input alternating between negative and positive", function () {
+    describe("with interaction alternating between negative and positive", function () {
       let result
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
