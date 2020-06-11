@@ -103,6 +103,33 @@ describe("Checking patch data produced", function () {
         })
       })
     })
+
+    describe("with input positive for first couple of diffs, then quitting altogether", function () {
+      let result
+      before(async function () {
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyq"), silentDisplay)
+      })
+      describe("via interaction", function () {
+        it("should return first two diffs as marked for staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .slice(0, 2)
+            .should.all.have.property("stage", true)
+        })
+        it("should return all diffs after first two as not marked for staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .slice(2)
+            .should.all.have.property("stage", false)
+        })
+      })
+      describe("via predetermined input", function () {
+        it("should return same result as if interaction had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "yyq", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+    })
   })
 
   describe("for A and B versions of multi-lined content", function () {
