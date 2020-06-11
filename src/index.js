@@ -229,7 +229,7 @@ const createCombinedPatchString = (a, b, hunks) => {
 
 const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
   const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
-  let { decidingInput, displayFn } = sideEffects
+  const { decidingInput, displayFn } = sideEffects
   let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
   const deciderFn = (typeof decidingInput === "function")
     ? decidingInput
