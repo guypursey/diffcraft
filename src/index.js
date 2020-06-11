@@ -231,20 +231,16 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
   let { decidingInput, displayFn } = sideEffects
   let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
-  let decision, deciderFn
+  const deciderFn = (typeof decidingInput === "function")
+    ? decidingInput
+    : (async (message, char) => decidingInput[char])
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
   if (crumb.diff && !stopAsking) {
     displayFn(`Word diff ${diffNumber}`)
     displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
       crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
-    if (typeof decidingInput === "function") {
-      deciderFn = decidingInput
-    } else {
-      deciderFn = (async () => decidingInput[0])
-      decidingInput = decidingInput.slice(1)
-    }
-    decision = deciderFn("Stage diff? (y/n/a/q) ")
+    decision = deciderFn("Stage diff? (y/n/a/q) ", diffNumber - 1)
   } else {
     decision = (async () => (!crumb.diff || autoAdding) ? "y" : "n")()
   }
