@@ -12,6 +12,25 @@ At present, this remains a proof-of-concept.
 
 This is that.
 
+## What does it do?
+
+For each little diff in your file (not at the line level), you can decide on what you want to do with that diff.
+
+These decisions are then used to generate a patch output which can popped into a file and, if you like, applied to a Git repository.
+
+### Encoded diff-decision strings
+
+To make each decision, there's a small array of characters or keys to use:
+
+ - `y`: Mark a diff for staging.
+ - `n`: Mark a diff to not be staged.
+ - `a`: Mark this and all diffs hereafter for these inputs for staging.
+ - `q`: Mark this and all diffs hereafter for these inputs to not be staged.
+
+The characters can also be used as part of an encoded diff-decision string, which you can use when working with this package.
+
+There are more examples in the section about input.
+
 ## Use as package in Node script
 
 Install locally:
@@ -52,8 +71,9 @@ Instead of interacting with the files using the command line, you can decide upf
 
 For example, you may want the first difference between two files to appear in your patch, but to ignore all the rest. You can do this with the `-i` flag and an encoded diff-decision string.
 
+    diffcraft -f testdocv1.md testdocv2.md -i yyq
 
-    diffcraft -f testdocv1.md testdocv2.md -i yq
+See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
 
 ### Using with Git
 
@@ -83,12 +103,11 @@ Takes two strings `a` and `b`, and returns data on their differences, using spec
 
 `userInput` needs to be either a string or a function that returns a Promise.
 
-The string should have contain a character for each diff, encoding the decision about each one, or the function should return a Promise which resolves to one of the following single-character strings:
+ - A **string** should have contain a character for each diff, encoding the decision about each one. This is the encoded diff-decision string. An example is the string `"yyq"`, which will mark the first two diffs found for staging but ignore all others.
 
- - `y`: Mark a diff for staging.
- - `n`: Mark a diff to not be staged.
- - `a`: Mark this and all diffs hereafter for these inputs for staging.
- - `q`: Mark this and all diffs hereafter for these inputs to not be staged.
+ - A **function** should return a Promise which resolves to one of single-character string values based on the same encoding. An example would be a function that returns a Promise resolves to `"y"`, then another than resolves to `"y"`, then another that resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others.
+
+See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
 
 `userDisplay` needs to be a function but does not need to return anything (can be pure side-effect, like `console.log()`, for now).
 
@@ -105,12 +124,11 @@ Only the first two objects in the array will be used as `a` and `b`. The structu
 
 Also takes three function arguments.
 
-`userInput` needs to be a function that returns a Promise, which resolves to one of the following single-character strings:
+ - A **string** should have contain a character for each diff, encoding the decision about each one. This is the encoded diff-decision string. An example is the string `"yyq"`, which will mark the first two diffs found for staging but ignore all others.
 
- - `y`: Mark a diff for staging.
- - `n`: Mark a diff to not be staged.
- - `a`: Mark this and all diffs hereafter for these inputs for staging.
- - `q`: Mark this and all diffs hereafter for these inputs to not be staged.
+ - A **function** should return a Promise which resolves to one of single-character string values based on the same encoding. An example would be a function that returns a Promise resolves to `"y"`, then another than resolves to `"y"`, then another that resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others.
+
+See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
 
 `userDisplay` needs to be a function but does not need to return anything (can be pure side-effect, like `console.log()`, for now).
 
