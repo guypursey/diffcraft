@@ -248,7 +248,10 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
         crumb.stage = stage
         crumb.stagedLine = stagedLine
         if (crumb.diff && !stopAsking) {
-          displayFn(crumb.stage ? "Staged" : "Not staged" )
+          displayFn(`${crumb.stage ? "Marked for staging" : "Not marked for staging"} ${
+              result === "a" ? "and marking all diffs hereafter" : "" }${
+              result === "q" ? "and quitting interaction now" : ""
+            }`)
         }
         stopAsking = stopAsking || (result === "a" || result === "q")
         autoAdding = autoAdding || (result === "a")
