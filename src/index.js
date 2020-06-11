@@ -229,15 +229,18 @@ const createCombinedPatchString = (a, b, hunks) => {
 
 const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
   const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
-  const { deciderFn, displayFn } = sideEffects
+  const { decidingInput, displayFn } = sideEffects
   let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
+  const deciderFn = (typeof decidingInput === "function")
+    ? decidingInput
+    : (async (message, char) => decidingInput[char])
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
   if (crumb.diff && !stopAsking) {
     displayFn(`Word diff ${diffNumber}`)
     displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
       crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
-    decision = deciderFn("Stage diff? (y/n/a/q) ")
+    decision = deciderFn("Stage diff? (y/n/a/q) ", diffNumber - 1)
   } else {
     decision = (async () => (!crumb.diff || autoAdding) ? "y" : "n")()
   }
@@ -253,7 +256,7 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
         autoAdding = autoAdding || (result === "a")
         let remainingCrumbs = crumbs.slice(1)
         let completedCrumbs = remainingCrumbs.length
-          ? processCrumbs(remainingCrumbs, diffFormatting, sideEffects, { diffNumber, stagedLine, stopAsking, autoAdding })
+          ? processCrumbs(remainingCrumbs, diffFormatting, { decidingInput, displayFn }, { diffNumber, stagedLine, stopAsking, autoAdding })
           : {
             "crumbs": [],
             "stopAsking": stopAsking,
@@ -352,7 +355,7 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
         },
         {
           "displayFn": userDisplay,
-          "deciderFn": userInput
+          "decidingInput": userInput
         },
         {
           "processCrumbs": processCrumbs,

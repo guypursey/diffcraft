@@ -20,15 +20,27 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nnnnnnn"), silentDisplay)
       })
-      describe("using individual negative values", function () {
+      describe("using individual negative values via interaction", function () {
         it("should return all diffs marked as not for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", false)
         })
       })
-      describe("using quit value", function () {
+      describe("using quit value via interaction", function () {
         it("should return the same result as if individual negative values had been used", async function (){
           let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("q"), silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using negative values via predetermined input", function () {
+        it("should return the same result as if interactive negative values had been used", async function (){
+          let result2 = await producePatchDataFromTwoInputs(a, b, "nnnnnnn", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using quit value via predetermined input", function () {
+        it("should return the same result as if interactive negative values had been used", async function (){
+          let result2 = await producePatchDataFromTwoInputs(a, b, "q", silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
         })
       })
@@ -39,15 +51,27 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyyyyyy"), silentDisplay)
       })
-      describe("using individual positive values", function () {
+      describe("using individual positive values via interaction", function () {
         it("should return all diffs as marked for staging", function () {
           result.hunks[0].hunkBody.filter(x => x.diff)
             .should.all.have.property("stage", true)
         })
       })
-      describe("using single staging value", function () {
+      describe("using single staging value via interaction", function () {
         it("should return the same result as if individual positive values had been used", async function () {
           let result2 = await producePatchDataFromTwoInputs(a, b, stubUserInput("a"), silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using positive values via predetermined input", function () {
+        it("should return the same result as if individual positive values had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "yyyyyyy", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+      describe("using single staging value via predetermined input", function () {
+        it("should return the same result as if interactive positive values had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "a", silentDisplay)
           result2.hunks.should.deep.equal(result.hunks)
         })
       })
@@ -58,17 +82,52 @@ describe("Checking patch data produced", function () {
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
       })
-      it("should return all evenly-number diffs marked for staging", function() {
-        result.hunks[0].hunkBody
-          .filter(x => x.diff)
-          .filter((x, i) => i % 2)
-          .should.all.have.property("stage", true)
+      describe("via interaction", function () {
+        it("should return all evenly-number diffs marked for staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .filter((x, i) => i % 2)
+            .should.all.have.property("stage", true)
+        })
+        it("should return every other diff marked for not staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .filter((x, i) => (i + 1) % 2)
+            .should.all.have.property("stage", false)
+        })
       })
-      it("should return every other diff marked for not staging", function() {
-        result.hunks[0].hunkBody
-          .filter(x => x.diff)
-          .filter((x, i) => (i + 1) % 2)
-          .should.all.have.property("stage", false)
+      describe("via predetermined input", function () {
+        it("should return same result as if interaction had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "nynynyn", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
+      })
+    })
+
+    describe("with input positive for first couple of diffs, then quitting altogether", function () {
+      let result
+      before(async function () {
+        result = await producePatchDataFromTwoInputs(a, b, stubUserInput("yyq"), silentDisplay)
+      })
+      describe("via interaction", function () {
+        it("should return first two diffs as marked for staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .slice(0, 2)
+            .should.all.have.property("stage", true)
+        })
+        it("should return all diffs after first two as not marked for staging", function () {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .slice(2)
+            .should.all.have.property("stage", false)
+        })
+      })
+      describe("via predetermined input", function () {
+        it("should return same result as if interaction had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "yyq", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
       })
     })
   })
