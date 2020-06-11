@@ -16,6 +16,14 @@ const argv = require("yargs")
   .describe("f2", "Use contents of specified file for second input to diff")
   .alias("o", "output").nargs("o", 1)
   .describe("o", "Load the patch contents into the specified file")
+  .alias("i", "input").nargs("o", 1)
+  .describe("i", [
+      "Predetermine diffs to select for patch; skip interactive and use string instead:",
+      "- `y`: Mark a diff for staging.",
+      "- `n`: Mark a diff to not be staged.",
+      "- `a`: Mark this and all diffs hereafter for staging.",
+      "- `q`: Mark this and all diffs hereafter to not be staged."
+    ].join("\n"))
   .help("h")
   .alias("h", "help")
   .alias("v", "version")
@@ -25,15 +33,15 @@ const prompts = require("prompts");
 const ttys = require("ttys");
 const diffcraft = require("../src/index.js");
 
-const promptFn = (async (message) => {
-  const response = await prompts({
-    type: "text",
-    name: "checkprompt",
-    message: message,
-    stdin: ttys.stdin
+const promptFn = argv.i || (async (message) => {
+    const response = await prompts({
+      type: "text",
+      name: "checkprompt",
+      message: message,
+      stdin: ttys.stdin
+    })
+    return response.checkprompt
   })
-  return response.checkprompt
-})
 
 const loggerFn = console.log;
 

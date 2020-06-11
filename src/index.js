@@ -213,30 +213,32 @@ const createPatchStringsFromPairedHunk = hunk => {
 
 const createWordDiffString = h => h.reduce((p, c, i) => `${p}\n${c.hunkDisplay}`, ``)
 
-const createCombinedPatchString = (a, b, hunks) => {
-  return hunks.reduce((p, c, i) => `${p}${
-      c.hunkPatch
-    }\n`, `diff --git a/${
-      a
-    } b/${
-      b
-    }\n\n--- a/${
-      a
-    }\n+++ b/${
-      b
-    }\n`)
-}
+const createCombinedPatchString = (a, b, hunks) => hunks.reduce((p, c, i) => `${p}${
+    c.hunkPatch
+  }\n`, `diff --git a/${
+    a
+  } b/${
+    b
+  }\n\n--- a/${
+    a
+  }\n+++ b/${
+    b
+  }\n`)
 
-const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn) {
-  const [ openingSource, closingSource, openingEdited, closingEdited ] = diffWrappers
-  const [ formatSource, formatEdited ] = diffFormat
+const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
+  const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
+  const { decidingInput, displayFn } = sideEffects
+  let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
+  const deciderFn = (typeof decidingInput === "function")
+    ? decidingInput
+    : (async (message, char) => decidingInput[char])
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
   if (crumb.diff && !stopAsking) {
     displayFn(`Word diff ${diffNumber}`)
     displayFn(`${crumb.source ? formatSource(`${openingSource}${crumb.source}${closingSource}`) : ""}${
       crumb.edited ? formatEdited(`${openingEdited}${crumb.edited}${closingEdited}`) : ""}`)
-    decision = deciderFn("Stage diff? (y/n/a/q) ")
+    decision = deciderFn("Stage diff? (y/n/a/q) ", diffNumber - 1)
   } else {
     decision = (async () => (!crumb.diff || autoAdding) ? "y" : "n")()
   }
@@ -246,13 +248,16 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
         crumb.stage = stage
         crumb.stagedLine = stagedLine
         if (crumb.diff && !stopAsking) {
-          displayFn(crumb.stage ? "Staged" : "Not staged" )
+          displayFn(`${crumb.stage ? "Marked for staging" : "Not marked for staging"} ${
+              result === "a" ? "and marking all diffs hereafter" : "" }${
+              result === "q" ? "and quitting interaction now" : ""
+            }`)
         }
         stopAsking = stopAsking || (result === "a" || result === "q")
         autoAdding = autoAdding || (result === "a")
         let remainingCrumbs = crumbs.slice(1)
         let completedCrumbs = remainingCrumbs.length
-          ? processCrumbs(remainingCrumbs, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+          ? processCrumbs(remainingCrumbs, diffFormatting, { decidingInput, displayFn }, { diffNumber, stagedLine, stopAsking, autoAdding })
           : {
             "crumbs": [],
             "stopAsking": stopAsking,
@@ -272,9 +277,19 @@ const processCrumbs = function (crumbs, diffWrappers, diffFormat, diffNumber, st
   }
 
 
-const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum = 0, hunkLength = hunks.length, diffNumber = 0, stagedLine = hunks[0].sourceStart, stopAsking, autoAdding) {
-  const [ formatSource, formatEdited ] = diffFormat
+const processHunks = function (hunks, diffFormatting, sideEffects, helpers, carriedState = {}) {
   const hunk = hunks[0]
+  const { formatSource, formatEdited } = diffFormatting
+  const { displayFn } = sideEffects
+  const { processCrumbs, packageHunk, createPatch } = helpers
+  let {
+    hunkNum = 0,
+    hunkLength = hunks.length,
+    diffNumber = 0,
+    stagedLine = hunks[0].sourceStart,
+    stopAsking,
+    autoAdding
+  } = carriedState
   if (!stopAsking) {
     displayFn(`Hunk ${hunkNum + 1}/${hunkLength}`)
     displayFn(hunk.hunkDisplay
@@ -286,7 +301,7 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
     stagedLine += (!hunkNum && !i) ? 0 : 1
     x.stagedLine = stagedLine
   })
-  return processCrumbs(hunk.hunkBody, diffWrappers, diffFormat, diffNumber, stagedLine, stopAsking, autoAdding, displayFn, deciderFn)
+  return processCrumbs(hunk.hunkBody, diffFormatting, sideEffects, { diffNumber, stagedLine, stopAsking, autoAdding })
     .then(function (result) {
       ({ crumbs, stopAsking, autoAdding, diffNumber, stagedLine } = result);
       hunk.hunkTrailContext.forEach(x => {
@@ -296,8 +311,9 @@ const processHunks = function (hunks, diffWrappers, diffFormat, displayFn, decid
       let newHunk = createPatch(packageHunk(hunk.hunkFrontContext, crumbs, hunk.hunkTrailContext))
       let remainingHunks = hunks.slice(1)
       stagedLine += remainingHunks.length ? remainingHunks[0].sourceStart - (hunk.sourceStart + hunk.sourceLength) : 0
+      let stateToCarry = { "hunkNum": hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding }
       let completedHunks = remainingHunks.length
-        ? processHunks(remainingHunks, diffWrappers, diffFormat, displayFn, deciderFn, processCrumbs, packageHunk, createPatch, hunkNum + 1, hunkLength, diffNumber, stagedLine, stopAsking, autoAdding)
+        ? processHunks(remainingHunks, diffFormatting, sideEffects, helpers, stateToCarry)
         : {
           "hunks": [],
           "stopAsking": stopAsking,
@@ -330,16 +346,23 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
           ), 1, packageHunk
         ).map(x => createPatchStringsFromPairedHunk(
           recreateWordDiffFromPairedHunk(x)
-        )), [
-          "[-", "-]", "{+", "+}"
-        ], [
-          chalk.red, chalk.green
-        ],
-        userDisplay,
-        userInput,
-        processCrumbs,
-        packageHunk,
-        createPatchStringsFromPairedHunk)
+        )), {
+          "openingSource": "[-",
+          "closingSource": "-]",
+          "openingEdited": "{+",
+          "closingEdited": "+}",
+          "formatSource": chalk.red,
+          "formatEdited": chalk.green
+        },
+        {
+          "displayFn": userDisplay,
+          "decidingInput": userInput
+        },
+        {
+          "processCrumbs": processCrumbs,
+          "packageHunk": packageHunk,
+          "createPatch": createPatchStringsFromPairedHunk
+        })
   
 const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputter) =>
   producePatchDataFromTwoInputs(a.contents, b.contents, decider, displayer)
