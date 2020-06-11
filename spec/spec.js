@@ -77,22 +77,30 @@ describe("Checking patch data produced", function () {
       })
     })
 
-    describe("with interaction alternating between negative and positive", function () {
+    describe("with input alternating between negative and positive", function () {
       let result
       before(async function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
       })
-      it("should return all evenly-number diffs marked for staging", function() {
-        result.hunks[0].hunkBody
-          .filter(x => x.diff)
-          .filter((x, i) => i % 2)
-          .should.all.have.property("stage", true)
+      describe("via interaction", function () {
+        it("should return all evenly-number diffs marked for staging", function() {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .filter((x, i) => i % 2)
+            .should.all.have.property("stage", true)
+        })
+        it("should return every other diff marked for not staging", function() {
+          result.hunks[0].hunkBody
+            .filter(x => x.diff)
+            .filter((x, i) => (i + 1) % 2)
+            .should.all.have.property("stage", false)
+        })
       })
-      it("should return every other diff marked for not staging", function() {
-        result.hunks[0].hunkBody
-          .filter(x => x.diff)
-          .filter((x, i) => (i + 1) % 2)
-          .should.all.have.property("stage", false)
+      describe("via predetermined input", function () {
+        it("should return same result as if interaction had been used", async function () {
+          let result2 = await producePatchDataFromTwoInputs(a, b, "nynynyn", silentDisplay)
+          result2.hunks.should.deep.equal(result.hunks)
+        })
       })
     })
   })
