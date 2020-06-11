@@ -40,7 +40,24 @@ _Or_ you can pipe contents to compare if preferred, using specific flags to dete
 
     cat testdocv2.md | diffcraft --f1 testdocv1.md
 
-_Or_, perhaps more usefully, pipe in contents from a Git command and compare with current version of the file:
+### Output
+
+You can also have your crafted patch directed to a file, using the `-o` flag and a filename argument.
+
+    diffcraft -f testdocv1.md testdocv2.md -o testpatch.patch
+
+### Input
+
+Instead of interacting with the files using the command line, you can decide upfront what you want the decision about each diff to be.
+
+For example, you may want the first difference between two files to appear in your patch, but to ignore all the rest. You can do this with the `-i` flag and an encoded diff-decision string.
+
+
+    diffcraft -f testdocv1.md testdocv2.md -i yq
+
+### Using with Git
+
+Perhaps more usefully, pipe in contents from a Git command and compare with current version of the file:
 
     git show HEAD:testdoc.md | diffcraft --f2 testdoc.md -o test.patch
 
@@ -54,6 +71,8 @@ The patch then should be ready to commit but can check it, of course, with:
 
 Because the algorithm works on a file-by-file basis, you might want to create and stage several patches before then committing with the usual `git commit`.
 
+You can see [a working example of using diffcraft and Git together, with useful aliases in a related blog post](https://guypursey.com/blog/202006091830-my-new-git-editing-workflow).
+
 ## Module options
 
 These are the methods you can using if including/requiring diffcraft in your own package/code:
@@ -62,7 +81,9 @@ These are the methods you can using if including/requiring diffcraft in your own
 
 Takes two strings `a` and `b`, and returns data on their differences, using specified `userInput` and `userDisplay` functions to determine how to flag those differences.
 
-`userInput` needs to be a function that returns a Promise, which resolves to one of the following single-character strings:
+`userInput` needs to be either a string or a function that returns a Promise.
+
+The string should have contain a character for each diff, encoding the decision about each one, or the function should return a Promise which resolves to one of the following single-character strings:
 
  - `y`: Mark a diff for staging.
  - `n`: Mark a diff to not be staged.
