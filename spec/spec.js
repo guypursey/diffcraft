@@ -83,13 +83,13 @@ describe("Checking patch data produced", function () {
         result = await producePatchDataFromTwoInputs(a, b, stubUserInput("nynynyn"), silentDisplay)
       })
       describe("via interaction", function () {
-        it("should return all evenly-number diffs marked for staging", function() {
+        it("should return all evenly-number diffs marked for staging", function () {
           result.hunks[0].hunkBody
             .filter(x => x.diff)
             .filter((x, i) => i % 2)
             .should.all.have.property("stage", true)
         })
-        it("should return every other diff marked for not staging", function() {
+        it("should return every other diff marked for not staging", function () {
           result.hunks[0].hunkBody
             .filter(x => x.diff)
             .filter((x, i) => (i + 1) % 2)
