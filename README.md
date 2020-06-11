@@ -24,12 +24,12 @@ To make each decision, there's a small array of characters or keys to use:
 
  - `y`: Mark a diff for staging.
  - `n`: Mark a diff to not be staged.
- - `a`: Mark this and all diffs hereafter for these inputs for staging.
- - `q`: Mark this and all diffs hereafter for these inputs to not be staged.
+ - `a`: Mark this and all diffs hereafter for staging.
+ - `q`: Mark this and all diffs hereafter to not be staged.
 
 The characters can also be used as part of an encoded diff-decision string, which you can use when working with this package.
 
-There are more examples in the section about input.
+There are some examples in [the section about the input flag for CLI usage](#input), and [the section about the method for writing patch data within your own package](#producepatchdatafromtwoinputsa-b-userinput-userdisplay).
 
 ## Use as package in Node script
 
@@ -73,7 +73,7 @@ For example, you may want the first difference between two files to appear in yo
 
     diffcraft -f testdocv1.md testdocv2.md -i yyq
 
-See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
+See [the section on encoded diff-decision strings](#encoded-diff-decision-strings) for more on how to use this flag.
 
 ### Using with Git
 
@@ -91,7 +91,7 @@ The patch then should be ready to commit but can check it, of course, with:
 
 Because the algorithm works on a file-by-file basis, you might want to create and stage several patches before then committing with the usual `git commit`.
 
-You can see [a working example of using diffcraft and Git together, with useful aliases in a related blog post](https://guypursey.com/blog/202006091830-my-new-git-editing-workflow).
+There are [some useful aliases for using diffcraft with Git](https://guypursey.com/blog/202006091830-my-new-git-editing-workflow).
 
 ## Module options
 
@@ -107,7 +107,7 @@ Takes two strings `a` and `b`, and returns data on their differences, using spec
 
  - A **function** should return a Promise which resolves to one of single-character string values based on the same encoding. An example would be a function that returns a Promise resolves to `"y"`, then another than resolves to `"y"`, then another that resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others.
 
-See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
+See [the section on encoded diff-decision strings](#encoded-diff-decision-strings) for more on how to use this flag.
 
 `userDisplay` needs to be a function but does not need to return anything (can be pure side-effect, like `console.log()`, for now).
 
@@ -144,6 +144,7 @@ You can run the `diffcraft` command in a terminal with the following options/fla
  - `--f1`: Expects argument of file A (to be compared with whatever is given as content B). If B isn't also specified, it will look to piped input to compare with as content.
  - `--f2`: Expects argument of file B (to be compared with whatever is given as content A). If A isn't also specified, it will look to piped input to compare with as content.
  - `-o`: Expects name of file to put patch string into. (Would normally have file extension `.patch`.)
+ - `-i`: Expects [encoded diff-decision string](#encoded-diff-decision-string).
  - `-h`: Show help.
  - `-v`: Show version number.
 
