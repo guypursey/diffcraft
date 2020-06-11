@@ -213,19 +213,17 @@ const createPatchStringsFromPairedHunk = hunk => {
 
 const createWordDiffString = h => h.reduce((p, c, i) => `${p}\n${c.hunkDisplay}`, ``)
 
-const createCombinedPatchString = (a, b, hunks) => {
-  return hunks.reduce((p, c, i) => `${p}${
-      c.hunkPatch
-    }\n`, `diff --git a/${
-      a
-    } b/${
-      b
-    }\n\n--- a/${
-      a
-    }\n+++ b/${
-      b
-    }\n`)
-}
+const createCombinedPatchString = (a, b, hunks) => hunks.reduce((p, c, i) => `${p}${
+    c.hunkPatch
+  }\n`, `diff --git a/${
+    a
+  } b/${
+    b
+  }\n\n--- a/${
+    a
+  }\n+++ b/${
+    b
+  }\n`)
 
 const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedState) {
   const { openingSource, closingSource, openingEdited, closingEdited, formatSource, formatEdited } = diffFormatting
