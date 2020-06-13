@@ -101,11 +101,11 @@ These are the methods you can using if including/requiring diffcraft in your own
 
 Takes two strings `a` and `b`, and returns data on their differences, using specified `userInput` and `userDisplay` functions to determine how to flag those differences.
 
-`userInput` needs to be either a string or a function that returns a Promise.
+`userInput` needs to be either a **string** or a **function** that returns a single character value or a Promise that resolves to that.
 
  - A **string** should have contain a character for each diff, encoding the decision about each one. This is the encoded diff-decision string. An example is the string `"yyq"`, which will mark the first two diffs found for staging but ignore all others.
 
- - A **function** should return a Promise which resolves to one of single-character string values based on the same encoding. An example would be a function that returns a Promise resolves to `"y"`, then another than resolves to `"y"`, then another that resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others.
+ - A **function** should return single-character string values based on the same encoding (or a Promise that resolves to that). An example would be a function that returns the value (or a Promise resolves to) `"y"`, then another than returns or resolves to `"y"`, then another that returns or resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others. The first argument of any function will be the message about the staging, the second will be the number of the diff in the file overall (corresponding to the character in the implied diff-decision string).
 
 See [the section on encoded diff-decision strings](#encoded-diff-decision-strings) for more on how to use this flag.
 
@@ -124,9 +124,11 @@ Only the first two objects in the array will be used as `a` and `b`. The structu
 
 Also takes three function arguments.
 
+`userInput` needs to be either a **string** or a **function** that returns a single character value or a Promise that resolves to that.
+
  - A **string** should have contain a character for each diff, encoding the decision about each one. This is the encoded diff-decision string. An example is the string `"yyq"`, which will mark the first two diffs found for staging but ignore all others.
 
- - A **function** should return a Promise which resolves to one of single-character string values based on the same encoding. An example would be a function that returns a Promise resolves to `"y"`, then another than resolves to `"y"`, then another that resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others.
+ - A **function** should return single-character string values based on the same encoding (or a Promise that resolves to that). An example would be a function that returns the value (or a Promise resolves to) `"y"`, then another than returns or resolves to `"y"`, then another that returns or resolves to `"q"`. Like the string example, this will mark the first two diffs for staging but ignore all others. The first argument of any function will be the message about the staging, the second will be the number of the diff in the file overall (corresponding to the character in the implied diff-decision string).
 
 See [the section on encoded diff-decision strings](#encoding-diff-decision-strings) for more on how to use this flag.
 
