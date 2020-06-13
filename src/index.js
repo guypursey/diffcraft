@@ -230,7 +230,7 @@ const processCrumbs = function (crumbs, diffFormatting, sideEffects, carriedStat
   const { decidingInput, displayFn } = sideEffects
   let { diffNumber, stagedLine, stopAsking, autoAdding } = carriedState
   const deciderFn = (typeof decidingInput === "function")
-    ? (async message => decidingInput(message))
+    ? (async (message, char) => decidingInput(message, char))
     : (async (message, char) => decidingInput[char])
   const crumb = crumbs[0]
   diffNumber = diffNumber + (crumb.diff ? 1 : 0)
