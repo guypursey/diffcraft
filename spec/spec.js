@@ -6,7 +6,7 @@ describe("Checking patch data produced", function () {
   let producePatchDataFromTwoInputs = diffcraft.producePatchDataFromTwoInputs
   let stubUserInput = ((input = "") => {
     let memoInput = input.split("")
-    return (async (message) => memoInput.shift() || "q")
+    return ((message) => memoInput.shift() || "q")
   })
   let silentDisplay = x => null
 
