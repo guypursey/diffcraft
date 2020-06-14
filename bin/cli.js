@@ -31,6 +31,7 @@ const argv = require("yargs")
   .argv;
 const prompts = require("prompts");
 const ttys = require("ttys");
+const readline = require("readline").createInterface(ttys.stdin, ttys.stdout)
 const diffcraft = require("../src/index.js");
 
 const promptFn = argv.i || (async (message) => {
@@ -38,23 +39,26 @@ const promptFn = argv.i || (async (message) => {
       type: "text",
       name: "checkprompt",
       message: message,
-      stdin: ttys.stdin
+      stdin: ttys.stdin,
+      stdout: ttys.stdout
     })
     return response.checkprompt
   })
 
-const loggerFn = console.log;
+const loggerFn = message => {
+  readline.write(`${message}\n`);
+}
 
 const outputFn = argv.o
   ? (async (output) => {
       fsp.writeFile(argv.o, output, "utf8")
         .then(function (result) {
-          console.log(`Wrote patch successfully to ${argv.o}`)
+          loggerFn(`Wrote patch successfully to ${argv.o}`)
           return output
         })
     })
   : output => {
-    loggerFn(output)
+    console.log(output)
     return output
   };
 
@@ -83,8 +87,8 @@ Promise.all([
     ], promptFn, argv.i ? x => x : loggerFn, outputFn)
   })
   .then(function (data) {
-    ttys.stdin.destroy()
+    ttys.stdin.destroy();
   })
   .catch(function (error) {
-    console.log(error)
+    console.error(error)
   })
