@@ -1,5 +1,5 @@
 const worddiff = require("diff").diffWordsWithSpace
-const chalk = require("chalk")
+const kleur = require("kleur")
 
 const breakUpLines = (diffArray, splitAt = /\n/g) => {
   let sourceLine = 1
@@ -351,8 +351,8 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
           "closingSource": "-]",
           "openingEdited": "{+",
           "closingEdited": "+}",
-          "formatSource": chalk.red,
-          "formatEdited": chalk.green
+          "formatSource": kleur.red,
+          "formatEdited": kleur.green
         },
         {
           "displayFn": userDisplay,
