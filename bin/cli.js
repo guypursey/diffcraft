@@ -84,7 +84,7 @@ Promise.all([
         "filename": argv.f ? argv.f[0] : argv.f2 || argv.f1,
         "contents": edited.replace(/\r/g, "")
       }
-    ], promptFn, argv.i ? x => x : loggerFn, outputFn)
+    ], promptFn, loggerFn, outputFn)
   })
   .then(function (data) {
     ttys.stdin.destroy();
