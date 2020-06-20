@@ -366,7 +366,9 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
   
 const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputter) =>
   producePatchDataFromTwoInputs(a.contents, b.contents, decider, displayer)
-    .then(result => createCombinedPatchString(a.filename, b.filename, result.hunks))
+    .then(result => result.hunks.filter(hunk => hunk.hunkBody
+      .reduce((p, c) => p || (c.diff && c.stage), false)))
+    .then(hunks => createCombinedPatchString(a.filename, b.filename, hunks))
     .then(result => outputter(result))
 
 const producePatchFromFileObjs = (files) =>

@@ -203,3 +203,60 @@ describe("Checking patch data produced", function () {
     })
   })
 })
+
+describe("Check patch output for", function (){
+
+  let producePatchOutput = diffcraft.producePatchStringFromFilesContent
+  let stubUserInput = ((input = "") => {
+    let memoInput = input.split("")
+    return ((message) => memoInput.shift() || "q")
+  })
+  let silentDisplay = x => null
+
+  describe("for A and B versions of multi-hunk content", function () {
+
+    let a = {
+      "filename": "sample-file.md",
+      "contents": `# Example contents\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that changes.`
+    }
+    let b = {
+      "filename": "sample-file.md",
+      "contents": `# Test contents\n\nA new first line added.\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that has changed.`
+    }
+
+    describe("with input ignoring first hunk, which contains line break changes", function () {
+      let result
+      before(async function () {
+        result = await producePatchOutput([a, b], "nnnny", silentDisplay, x => x)
+      })
+      it("should return a patch of only nine lines", function () {
+        result.split("\n").length.should.equal(9)
+      })
+      it("should return a patch where the first line shows both filenames", function () {
+        result.split("\n")[0].should.equal(`diff --git a/${a.filename} b/${b.filename}`)
+      })
+      it("should return a patch where the A header matches the A filename", function () {
+        result.split("\n")[2].should.equal(`--- a/${a.filename}`)
+      })
+      it("should return a patch where the B header matches the B filename", function () {
+        result.split("\n")[3].should.equal(`+++ b/${b.filename}`)
+      })
+      it("should return a patch where the hunk context line gives correct line numbers", function () {
+        result.split("\n")[4].should.equal(`@@ -6,2 +6,2 @@`)
+      })
+      it("should return a patch where hunk starting context line is given", function () {
+        result.split("\n")[5].should.equal(" ")
+      })
+      it("should return a patch where the patch source line matches content in version A", function () {
+        result.split("\n")[6].should.equal(`-${a.contents.split("\n")[6]}`)
+      })
+      it("should return a patch where the patch source line matches content in version B", function () {
+        result.split("\n")[7].should.equal(`+${b.contents.split("\n")[8]}`)
+      })
+      it("should return a patch where hunk closing context line is given", function () {
+        result.split("\n")[8].should.equal("")
+      })
+    })
+  })
+
+})
