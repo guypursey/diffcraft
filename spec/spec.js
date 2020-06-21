@@ -215,13 +215,18 @@ describe("Check patch output for", function (){
 
   describe("for A and B versions of multi-hunk content", function () {
 
+    let hunk1a = `# Example contents\n\nThis is an example of contents in a file.\n`
+    let hunk1b = `# Test contents\n\nA new first line added.\n\nThis is an example of contents in a file.\n`
+    let filler = `\nThere is more content here.\n\n`
+    let hunk2a = `This is a line that changes.`
+    let hunk2b = `This is a line that has changed.`
     let a = {
       "filename": "sample-file.md",
-      "contents": `# Example contents\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that changes.`
+      "contents": `${hunk1a}${filler}${hunk2a}`
     }
     let b = {
       "filename": "sample-file.md",
-      "contents": `# Test contents\n\nA new first line added.\n\nThis is an example of contents in a file.\n\nThere is more content here.\n\nThis is a line that has changed.`
+      "contents": `${hunk1b}${filler}${hunk2b}`
     }
 
     describe("with input ignoring first hunk, which contains line break changes", function () {
@@ -229,8 +234,13 @@ describe("Check patch output for", function (){
       before(async function () {
         result = await producePatchOutput([a, b], "nnnny", silentDisplay, x => x)
       })
-      it("should return a patch of only nine lines", function () {
-        result.split("\n").length.should.equal(9)
+      it("should return a patch of nine lines", function () {
+        let phl = patchHeaderLength = 4
+        let hcl = hunkContextLength = 1
+        let hal = hunkALength = (hunk2a.match(/\n/g) || []).length + 1
+        let hbl = hunkBLength = (hunk2b.match(/\n/g) || []).length + 1
+        let hpd = hunkPadding = 2
+        result.split("\n").length.should.equal(phl + hcl + hal + hbl + hpd)
       })
       it("should return a patch where the first line shows both filenames", function () {
         result.split("\n")[0].should.equal(`diff --git a/${a.filename} b/${b.filename}`)
@@ -242,16 +252,19 @@ describe("Check patch output for", function (){
         result.split("\n")[3].should.equal(`+++ b/${b.filename}`)
       })
       it("should return a patch where the hunk context line gives correct line numbers", function () {
-        result.split("\n")[4].should.equal(`@@ -6,2 +6,2 @@`)
+        let ehsl = expectedHunk2StartLine = `${hunk1a}${filler}`.match(/\n/g).length
+        let hall = hunk2aLineLength = (hunk2a.match(/\n/g) || []).length + 2
+        let hbll = hunk2bLineLength = (hunk2b.match(/\n/g) || []).length + 2
+        result.split("\n")[4].should.equal(`@@ -${ehsl},${hall} +${ehsl},${hbll} @@`)
       })
       it("should return a patch where hunk starting context line is given", function () {
         result.split("\n")[5].should.equal(" ")
       })
       it("should return a patch where the patch source line matches content in version A", function () {
-        result.split("\n")[6].should.equal(`-${a.contents.split("\n")[6]}`)
+        result.split("\n")[6].should.equal(`-${hunk2a}`)
       })
       it("should return a patch where the patch source line matches content in version B", function () {
-        result.split("\n")[7].should.equal(`+${b.contents.split("\n")[8]}`)
+        result.split("\n")[7].should.equal(`+${hunk2b}`)
       })
       it("should return a patch where hunk closing context line is given", function () {
         result.split("\n")[8].should.equal("")
