@@ -368,10 +368,6 @@ const producePatchStringFromFilesContent = ([a, b], decider, displayer, outputte
     .then(hunks => createCombinedPatchString(a.filename, b.filename, hunks))
     .then(result => outputter(result))
 
-const producePatchFromFileObjs = (files) =>
-  files.map(x => producePatchString(x.filename, x.diffs))
-    .join("\n")
-
 module.exports = {
   producePatchDataFromTwoInputs: producePatchDataFromTwoInputs,
   producePatchStringFromFilesContent: producePatchStringFromFilesContent
