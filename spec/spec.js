@@ -160,6 +160,18 @@ describe("Checking patch data produced", function () {
         })
       })
     })
+
+    describe("with A and B reversed and inputs all positive", function () {
+      let result
+      before(async function () {
+        result = await producePatchDataFromTwoInputs(b, a, stubUserInput("a"), silentDisplay)
+      })
+      it("should return staged lines the same as the edited lines", function () {
+        result.hunks[0].hunkBody.forEach(x => {
+          x.stagedLine.should.equal(x.editedLine)
+        })
+      })
+    })
   })
 
   describe("for A and B versions of multi-hunk content", function () {
