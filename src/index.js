@@ -52,9 +52,6 @@ const pairUpDiffs = diffArray => {
       p.editedLine = c.editedLine
       p.isDiff = true
     } else if (c.added) {
-      if (!(p.editedStack === null)) {
-        p = tidyStacks(p)
-      }
       p.sourceStack = p.sourceStack || ""
       p.sourceLine = p.sourceLine || c.sourceLine
       p.editedStack = c.value
