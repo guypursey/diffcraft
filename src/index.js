@@ -137,7 +137,7 @@ const packageHunk = (front, body, trail) => {
   }
 }
   
-const contextualiseHunks = (nestedArray, context, wrap) => {
+const contextualiseHunks = (nestedArray, contextLimit, wrapHunk) => {
   let currentFront = []
   let currentTrail = []
   let currentHunk = []
@@ -149,8 +149,8 @@ const contextualiseHunks = (nestedArray, context, wrap) => {
       }
       currentHunk.push(...c)
     } else if (currentHunk.length) {
-      if (currentTrail.length >= context) {
-        p = p.concat(wrap(currentFront, currentHunk, currentTrail))
+      if (currentTrail.length >= contextLimit) {
+        p = p.concat(wrapHunk(currentFront, currentHunk, currentTrail))
         currentFront = []
         currentTrail = []
         currentHunk = []
@@ -160,14 +160,14 @@ const contextualiseHunks = (nestedArray, context, wrap) => {
       }
     } else {
       currentFront.push(...c)
-      if (currentFront.length > context) {
+      if (currentFront.length > contextLimit) {
         currentFront.shift()
       }
     }
     return p
   }, [])
   if (currentHunk.length) {
-    hunkArray = hunkArray.concat(wrap(currentFront, currentHunk, currentTrail))
+    hunkArray = hunkArray.concat(wrapHunk(currentFront, currentHunk, currentTrail))
   }
   return hunkArray
 }
