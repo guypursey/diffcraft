@@ -142,7 +142,7 @@ const contextualiseHunks = (nestedArray, context, wrap) => {
   let currentTrail = []
   let currentHunk = []
   let hunkArray = nestedArray.reduce((p, c) => {
-    if (c.length > 1 || c.added || c.removed) {
+    if (c.length > 1) {
       if (currentTrail.length) {
         currentHunk.push(...currentTrail)
         currentTrail = []
