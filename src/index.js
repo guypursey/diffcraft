@@ -329,7 +329,7 @@ const processHunks = function (hunks, diffFormatting, sideEffects, helpers, carr
     })
 }
 
-const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
+const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay, contextAmount = 1) =>
     processHunks(
         contextualiseHunks(
           nestGlutesIntoHunks(
@@ -340,7 +340,7 @@ const producePatchDataFromTwoInputs = (a, b, userInput, userDisplay) =>
                 )
               )
             )
-          ), 1, packageHunk
+          ), contextAmount, packageHunk
         ).map(x => createPatchStringsFromPairedHunk(
           recreateWordDiffFromPairedHunk(x)
         )), {
